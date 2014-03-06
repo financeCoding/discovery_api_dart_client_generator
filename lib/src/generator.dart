@@ -51,6 +51,9 @@ class Generator {
           print("Forced rebuild");
           print("Regenerating library $_libraryName");
           if (version.startsWith(clientVersion)) {
+            // TODO(adam): does not support semantic versioning,
+            // what happens if 0.1.0-dev.0 has been manually pushed?
+            // http://semver.org/
             clientVersionBuild = (forceVersion != null) ? forceVersion : int.parse(version.substring(clientVersion.length + 1)) + 1;
           } else {
             clientVersionBuild = (forceVersion != null) ? forceVersion : 0;
