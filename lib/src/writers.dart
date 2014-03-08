@@ -28,7 +28,7 @@ void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data,
     sink.writeln('  factory ${capitalize(name)}.fromJson(core.Map json) {');
     sink.writeln('    switch(json["type"]) {');
     data.variant.map.forEach((JsonSchemaVariantMap typeValue) {
-      sink.writeln('      case "${typeValue.$ref}":');
+      sink.writeln('      case "${typeValue.type_value}":');
       sink.writeln('        return new ${typeValue.$ref}.fromJson(json);');
     });
     sink.writeln('    }');
