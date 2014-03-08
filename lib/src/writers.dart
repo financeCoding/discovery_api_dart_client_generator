@@ -1,13 +1,55 @@
 part of discovery_api_client_generator;
 
-void _writeSchemaClass(StringSink sink, String name, JsonSchema data) {
+void _writeSchemaClassDeclaration(StringSink sink, String name, JsonSchema data, Map<String, String> factoryTypes) {
+  if (data.variant == null) {
+    sink.write('class ${capitalize(name)} ');
+
+    if (factoryTypes.containsKey(capitalize(name))) {
+      sink.write('implements ${factoryTypes[capitalize(name)]} ');
+    }
+
+    sink.writeln('{');
+
+  } else if (data.variant.discriminant != null && data.variant.discriminant == "type") {
+    sink.writeln('abstract class ${capitalize(name)} {');
+  }
+}
+
+void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data, List<CoreSchemaProp> props) {
+  sink.writeln();
+  sink.writeln('  /** Create new $name from JSON data */');
+
+  if (data.variant == null) {
+    sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
+    props.forEach((property) {
+      property.writeFromJson(sink);
+    });
+  } else if (data.variant.discriminant != null && data.variant.discriminant == "type") {
+    sink.writeln('  factory ${capitalize(name)}.fromJson(core.Map json) {');
+    sink.writeln('    switch(json["type"]) {');
+    data.variant.map.forEach((JsonSchemaVariantMap typeValue) {
+      sink.writeln('      case "${typeValue.$ref}":');
+      sink.writeln('        return new ${typeValue.$ref}.fromJson(json);');
+    });
+    sink.writeln('    }');
+  }
+
+  sink.writeln('  }');
+  sink.writeln();
+}
+
+void _writeSchemaClass(StringSink sink, String name, JsonSchema data, Map<String, String> factoryTypes) {
   if (data.description != null) {
     sink.writeln('/** ${data.description} */');
   }
 
-  sink.writeln('class ${capitalize(name)} {');
+  _writeSchemaClassDeclaration(sink, name, data, factoryTypes);
 
   var props = new List<CoreSchemaProp>();
+
+  // TODO(adam): What do we do if class is of "type": "array"
+  // Example: https://www.googleapis.com/discovery/v1/apis/mapsengine/v1/rest
+  // LatLngBox and BboxBounds
 
   if(data.properties != null) {
     data.properties.forEach((key, JsonSchema property) {
@@ -15,6 +57,8 @@ void _writeSchemaClass(StringSink sink, String name, JsonSchema data) {
       props.add(prop);
     });
   } else {
+    // TODO(adam): remove, its not weird anymore with the new
+    // "variant" and "discriminant"
     print('\tWeird to get no properties for $name');
     print('\t\t${JSON.encode(data)}');
   }
@@ -23,15 +67,7 @@ void _writeSchemaClass(StringSink sink, String name, JsonSchema data) {
     property.writeField(sink);
   });
 
-  sink.writeln();
-  sink.writeln('  /** Create new $name from JSON data */');
-  sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
-  props.forEach((property) {
-    property.writeFromJson(sink);
-  });
-
-  sink.writeln('  }');
-  sink.writeln();
+  _writeSchemaClassConstructor(sink, name, data, props);
 
   sink.writeln('  /** Create JSON Object for $name */');
   sink.writeln('  core.Map toJson() {');
@@ -53,7 +89,7 @@ void _writeSchemaClass(StringSink sink, String name, JsonSchema data) {
 
   props.forEach((property) {
     property.getSubSchemas().forEach((String key, JsonSchema value) {
-      _writeSchemaClass(sink, key, value);
+      _writeSchemaClass(sink, key, value, factoryTypes);
     });
   });
 }

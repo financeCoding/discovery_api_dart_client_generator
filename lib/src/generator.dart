@@ -271,8 +271,16 @@ import "package:$_libraryPubspecName/$_libraryName.dart";
     sink.writeln();
 
     if (_description.schemas != null) {
+      Map<String, String> factoryTypes = {};
       _description.schemas.forEach((String key, JsonSchema schema) {
-        _writeSchemaClass(sink, key, schema);
+        if (schema.variant != null && schema.variant.discriminant != null && schema.variant.discriminant == "type") {
+          schema.variant.map.forEach((JsonSchemaVariantMap concreteType) {
+            factoryTypes[concreteType.$ref] = capitalize(key);
+          });
+        }
+      });
+      _description.schemas.forEach((String key, JsonSchema schema) {
+        _writeSchemaClass(sink, key, schema, factoryTypes);
       });
 
       sink.write(_mapMapFunction);
@@ -398,7 +406,8 @@ void main(List<String> args) {
     'lib/$_libraryName.dart'
   ];
 
-  addTask('docs', createDartDocTask(pathList, linkApi: true));
+  // TODO(adam): re enable when hop_docgen is available
+  // addTask('docs', createDartDocTask(pathList, linkApi: true));
 
   addTask('analyze', createAnalyzerTask(pathList));
 
