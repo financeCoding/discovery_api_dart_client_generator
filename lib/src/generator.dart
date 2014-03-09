@@ -128,6 +128,8 @@ class Generator {
 
     _writeFile("$libFolder/src/client/resources.dart", _writeResources);
 
+    _writeFile("$libFolder/src/client/utils.dart", _writeUtils);
+
     // Create browser versions of the libraries
     _writeFile("$libFolder/$_libraryBrowserName.dart", _writeBrowserLibrary);
 
@@ -210,6 +212,7 @@ export 'package:$_libraryPubspecName/src/client_base.dart' show APIRequestError;
 part 'src/client/client.dart';
 part 'src/client/schemas.dart';
 part 'src/client/resources.dart';
+part 'src/client/utils.dart';
 """;
 
   void _writeBrowserLibrary(StringSink sink) {
@@ -296,6 +299,12 @@ import "package:$_libraryPubspecName/$_libraryName.dart";
         _writeResourceClass(sink, key, resource);
       });
     }
+  }
+
+  void _writeUtils(StringSink sink) {
+    sink.writeln("part of ${_shortName}_api;");
+    sink.writeln();
+    sink.writeln(_schemaArraySource);
   }
 
   void _writeScopes(StringSink sink) {
@@ -744,6 +753,30 @@ abstract class ConsoleClient implements ClientBase {
           httpClient.close();
         });
   }
+}
+""";
+
+  static const _schemaArraySource = r"""class SchemaArray<E> extends dart_collection.ListBase<E> {
+  core.List innerList = new core.List();
+
+  core.int get length => innerList.length;
+
+  void set length(core.int length) {
+    innerList.length = length;
+  }
+
+  void operator[]=(core.int index, E value) {
+    innerList[index] = value;
+  }
+
+  E operator [](core.int index) => innerList[index];
+
+  // Though not strictly necessary, for performance reasons
+  // you should implement add and addAll.
+
+  void add(E value) => innerList.add(value);
+
+  void addAll(core.Iterable<E> all) => innerList.addAll(all);
 }
 """;
 }
