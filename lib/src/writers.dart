@@ -4,6 +4,23 @@ void _writeSchemaClassDeclaration(StringSink sink, String name, JsonSchema data,
   if (data.variant == null) {
     sink.write('class ${capitalize(name)} ');
 
+    // TODO(adam): should we create a CoreSchemaProp out of this?
+    if (data.type == "array") {
+      String dartType = _getDartType(data.items);
+      if (dartType == null) {
+        // print("data = ${data}");
+        dartType = data.$ref;
+      }
+
+      if (dartType == null) {
+        dartType = "";
+      } else {
+        dartType = "<$dartType>";
+      }
+
+      sink.write('extends SchemaArray${dartType} ');
+    }
+
     if (factoryTypes.containsKey(capitalize(name))) {
       sink.write('implements ${factoryTypes[capitalize(name)]} ');
     }
@@ -20,10 +37,16 @@ void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data,
   sink.writeln('  /** Create new $name from JSON data */');
 
   if (data.variant == null) {
-    sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
-    props.forEach((property) {
-      property.writeFromJson(sink);
-    });
+    if (data.type == "array") {
+      sink.writeln('  ${capitalize(name)}.fromJson(core.List json) {');
+      sink.writeln('    innerList.addAll(json);');
+    } else { // "type": "object"
+      sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
+      props.forEach((property) {
+        property.writeFromJson(sink);
+      });
+    }
+
   } else if (data.variant.discriminant != null && data.variant.discriminant == "type") {
     sink.writeln('  factory ${capitalize(name)}.fromJson(core.Map json) {');
     sink.writeln('    switch(json["type"]) {');
