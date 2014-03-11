@@ -9,7 +9,7 @@ void _writeSchemaClassDeclaration(StringSink sink, String name, JsonSchema data,
       String dartType = _getDartType(data.items);
       if (dartType == null) {
         // print("data = ${data}");
-        dartType = data.$ref;
+        dartType = capitalize(data.items.$ref);
       }
 
       if (dartType == null) {
@@ -27,7 +27,7 @@ void _writeSchemaClassDeclaration(StringSink sink, String name, JsonSchema data,
 
     sink.writeln('{');
 
-  } else if (data.variant.discriminant != null && data.variant.discriminant == "type") {
+  } else if (data.variant.discriminant != null) {
     sink.writeln('abstract class ${capitalize(name)} {');
   }
 }
@@ -39,7 +39,11 @@ void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data,
   if (data.variant == null) {
     if (data.type == "array") {
       sink.writeln('  ${capitalize(name)}.fromJson(core.List json) {');
-      sink.writeln('    innerList.addAll(json);');
+      if (data.items.$ref == null) {
+        sink.writeln('    innerList.addAll(json);');
+      } else {
+        sink.writeln('    innerList.addAll(json.map((item) => new ${capitalize(data.items.$ref)}.fromJson(item)).toList());');
+      }
     } else { // "type": "object"
       sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
       props.forEach((property) {
@@ -47,9 +51,9 @@ void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data,
       });
     }
 
-  } else if (data.variant.discriminant != null && data.variant.discriminant == "type") {
+  } else if (data.variant.discriminant != null) {
     sink.writeln('  factory ${capitalize(name)}.fromJson(core.Map json) {');
-    sink.writeln('    switch(json["type"]) {');
+    sink.writeln('    switch(json["${data.variant.discriminant}"]) {');
     data.variant.map.forEach((JsonSchemaVariantMap typeValue) {
       sink.writeln('      case "${typeValue.type_value}":');
       sink.writeln('        return new ${typeValue.$ref}.fromJson(json);');
@@ -93,16 +97,31 @@ void _writeSchemaClass(StringSink sink, String name, JsonSchema data, Map<String
   _writeSchemaClassConstructor(sink, name, data, props);
 
   sink.writeln('  /** Create JSON Object for $name */');
-  sink.writeln('  core.Map toJson() {');
-  sink.writeln('    var output = new core.Map();');
-  sink.writeln();
-  props.forEach((property) {
-    property.writeToJson(sink);
-  });
-  sink.writeln('\n    return output;');
-  sink.writeln('  }');
-  sink.writeln();
-
+  if (data.variant == null) {
+    if (data.type == "array") {
+      sink.writeln('  core.List toJson() {');
+      if (data.items.$ref == null) {
+        sink.writeln('    return innerList;');
+      } else {
+        sink.writeln('    return innerList.map((item) => item.toJson()).toList();');
+      }
+      sink.writeln('  }');
+      sink.writeln();
+    } else {
+      sink.writeln('  core.Map toJson() {');
+      sink.writeln('    var output = new core.Map();');
+      sink.writeln();
+      props.forEach((property) {
+        property.writeToJson(sink);
+      });
+      sink.writeln('\n    return output;');
+      sink.writeln('  }');
+      sink.writeln();
+    }
+  } else {
+    sink.writeln('  core.Map toJson();');
+    sink.writeln();
+  }
   sink.writeln('  /** Return String representation of $name */');
   sink.writeln('  core.String toString() => JSON.encode(this.toJson());');
   sink.writeln();
