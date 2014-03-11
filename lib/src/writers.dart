@@ -24,6 +24,10 @@ void _writeSchemaClassDeclaration(StringSink sink, String name, JsonSchema data,
     if (factoryTypes.containsKey(capitalize(name))) {
       sink.write('implements ${factoryTypes[capitalize(name)]} ');
     }
+    
+    if (data.additionalProperties != null && data.additionalProperties.type != null && data.additionalProperties.type == "any") {
+      sink.write('extends SchemaAnyObject ');
+    }
 
     sink.writeln('{');
 
@@ -46,11 +50,14 @@ void _writeSchemaClassConstructor(StringSink sink, String name, JsonSchema data,
       }
     } else { // "type": "object"
       sink.writeln('  ${capitalize(name)}.fromJson(core.Map json) {');
-      props.forEach((property) {
-        property.writeFromJson(sink);
-      });
+      if (data.additionalProperties != null && data.additionalProperties.type != null && data.additionalProperties.type == "any") {
+        sink.writeln('    innerMap.addAll(json);');
+      } else {
+        props.forEach((property) {
+          property.writeFromJson(sink);
+        });
+      }
     }
-
   } else if (data.variant.discriminant != null) {
     sink.writeln('  factory ${capitalize(name)}.fromJson(core.Map json) {');
     sink.writeln('    switch(json["${data.variant.discriminant}"]) {');
@@ -109,12 +116,16 @@ void _writeSchemaClass(StringSink sink, String name, JsonSchema data, Map<String
       sink.writeln();
     } else {
       sink.writeln('  core.Map toJson() {');
-      sink.writeln('    var output = new core.Map();');
-      sink.writeln();
-      props.forEach((property) {
-        property.writeToJson(sink);
-      });
-      sink.writeln('\n    return output;');
+      if (data.additionalProperties != null && data.additionalProperties.type != null && data.additionalProperties.type == "any") {
+        sink.writeln('    return innerMap;');
+      } else {
+        sink.writeln('    var output = new core.Map();');
+        sink.writeln();
+        props.forEach((property) {
+          property.writeToJson(sink);
+        });
+        sink.writeln('\n    return output;');
+      }
       sink.writeln('  }');
       sink.writeln();
     }
