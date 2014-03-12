@@ -781,7 +781,7 @@ abstract class ConsoleClient implements ClientBase {
   void addAll(core.Iterable<E> all) => innerList.addAll(all);
 }
 """;
-  
+
   static const _schemaAnyObjectSource = r"""class SchemaAnyObject implements core.Map {
   core.Map innerMap = new core.Map();
   void clear() => innerMap.clear();
@@ -797,7 +797,9 @@ abstract class ConsoleClient implements ClientBase {
   core.Iterable get values => innerMap.values;
   void addAll(core.Map other) => innerMap.addAll(other);
   operator [](core.Object key) => innerMap[key];
-  void operator []=(key, value) => innerMap[key] = value;
+  void operator []=(key, value) { 
+    innerMap[key] = value;
+  }
 }
 """;
 }
