@@ -5,6 +5,7 @@ import "dart:io";
 import "dart:convert";
 import "package:args/args.dart";
 import "package:discovery_api_client_generator/generator.dart";
+import "package:discovery_api_client_generator/streamy_generator.dart";
 
 void printUsage(parser) {
   print("""
@@ -157,7 +158,20 @@ void main(List<String> arguments) {
     }
 
     loader.then((String doc) {
-      generateLibraryFromSource(doc, output, prefix: prefix, check: check, force: force);
+      GenerateResult generatedResult =
+          generateLibraryFromSource(doc, output, prefix: prefix, check: check, force: force);
+      print("DEBUG: generating streamy client library");
+      var templatesDir = new Directory("../templates");
+      if (!templatesDir.existsSync()) {
+        print('Code template directory templates does not exist');
+      } else {
+        // /tmp/mapsengine/dart_mapsengine_v1_api_client/lib/src/streamy
+        Directory streamyOutputDir = new Directory(generatedResult.packagePath + "/lib/src/streamy");
+        streamyOutputDir.createSync(recursive: true);
+        print("path= ${streamyOutputDir.path}");
+        generateStreamyClientLibrary(doc,streamyOutputDir.path,
+            templatesDir: templatesDir);
+      }
     });
   } else {
     generateAllLibraries(output, prefix: prefix, check: check, force: force);
