@@ -13,6 +13,8 @@ dependencies:
   google_discovery_v1_api: '>=0.4.12'
   logging: '>=0.9.1+1 <0.10.0'
   path: '>=1.0.0 <2.0.0'
+  streamy:
+    git: https://github.com/financeCoding/streamy-dart.git
 dev_dependencies:
   bot_io: '>=0.25.0 <0.26.0'
   hop: '>=0.30.2 <0.31.0'
