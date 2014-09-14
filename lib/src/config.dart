@@ -8,7 +8,8 @@ class Config {
   String get dartEnvironmentVersionConstraint => '>=1.0.0 <2.0.0';
 
   Map<String, String> get dependencyVersions => const {
-    'google_oauth2_client': " '>=0.3.2 <0.4.0'"
+    'google_oauth2_client': " '>=0.3.2 <0.4.0'",
+    'meta': " '>=0.8.8 <0.9.0'"
   };
 
   Map<String, String> get devDependencyVersions => const {

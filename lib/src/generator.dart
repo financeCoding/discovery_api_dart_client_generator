@@ -156,38 +156,20 @@ class Generator {
   }
 
   void _writeReadme(StringSink sink, int clientVersionBuild) {
+    int clientVersionBuildPrevious = clientVersionBuild-1 < 0 ? 0 : clientVersionBuild-1;
+    
     sink.write("""
-# $_libraryPubspecName
+# (Deprecated) $_libraryPubspecName
 
-### Description
+### See [googleapis](https://pub.dartlang.org/packages/googleapis) or [googleapis_beta](https://pub.dartlang.org/packages/googleapis_beta) for latest libraries.
 
-Auto-generated client library for accessing the $_name $_version API.
+If you would like to continue to use this library pin version constraint to 
+`'${_config.getLibraryVersion(clientVersionBuildPrevious)}'`
+
+![alt tag](https://cloud.githubusercontent.com/assets/654526/4262495/26e744b4-3ba5-11e4-8b96-bfadd6eeaf9e.png)
 
 """);
-    sink.write("#### ");
-    if (_description.icons != null && _description.icons.x16 != null) {
-      sink.write("![Logo](${_description.icons.x16}) ");
-    }
-    sink.writeln('${_description.title} - $_name $_version');
-    sink.writeln();
-    sink.writeln('${_description.description}');
-    sink.writeln();
-    if (_description.documentationLink != null) {
-      sink.writeln('Official API documentation: ${_description.documentationLink}');
-      sink.writeln();
-    }
-    sink.writeln('Adding dependency to pubspec.yaml\n\n```\n  dependencies:\n    $_libraryPubspecName: \'>=${_config.getLibraryVersion(clientVersionBuild)}\'\n```');
-    sink.writeln();
-    sink.writeln('For web applications:\n\n```\n  import \"package:$_libraryPubspecName/$_libraryBrowserName.dart\" as ${cleanName(_name).toLowerCase()}client;\n```');
-    sink.writeln();
-    sink.writeln('For console application:\n\n```\n  import \"package:$_libraryPubspecName/$_libraryConsoleName.dart\" as ${cleanName(_name).toLowerCase()}client;\n```');
-    sink.writeln();
-
-    sink.writeln('Working without authentication the following constructor can be called:\n\n```\n  var ${cleanName(_name).toLowerCase()} = new ${cleanName(_name).toLowerCase()}client.${capitalize(_name)}();\n```');
-    sink.writeln();
-    sink.writeln('To use authentication create a new `GoogleOAuth2` object and pass it to the constructor:\n\n');
-    sink.writeln('```\n  GoogleOAuth2 auth = new GoogleOAuth2(CLIENT_ID, SCOPES);\n  var ${cleanName(_name).toLowerCase()} = new ${cleanName(_name).toLowerCase()}client.${capitalize(_name)}(auth);\n```');
-    sink.writeln();
+    
     sink.writeln('### Licenses\n\n```');
     sink.write(_license);
     sink.writeln('```');
@@ -226,7 +208,7 @@ import "package:$_libraryPubspecName/$_libraryName.dart";
     } else {
       sink.writeln('/** Client to access the $_name $_version API */');
     }
-    sink.writeln('class ${capitalize(_name)} extends Client with BrowserClient {');
+    sink.writeln('@deprecated\nclass ${capitalize(_name)} extends Client with BrowserClient {');
     _writeScopes(sink);
     sink.writeln();
     sink.writeln('  final oauth.OAuth2 auth;');
@@ -253,7 +235,7 @@ import "package:$_libraryPubspecName/$_libraryName.dart";
     } else {
       sink.writeln('/** Client to access the $_name $_version API */');
     }
-    sink.writeln('class ${capitalize(_name)} extends Client with ConsoleClient {');
+    sink.writeln('@deprecated\nclass ${capitalize(_name)} extends Client with ConsoleClient {');
     _writeScopes(sink);
 
     sink.writeln();
@@ -432,6 +414,7 @@ import "dart:convert";
 /**
  * Base class for all API clients, offering generic methods for HTTP Requests to the API
  */
+@deprecated
 abstract class ClientBase {
   String get basePath;
   String get rootUrl;
@@ -486,12 +469,13 @@ abstract class ClientBase {
 /**
  * Error thrown when the HTTP Request to the API failed
  */
+@deprecated
 class APIRequestError extends Error {
   final String message;
   APIRequestError([this.message]);
   String toString() => (message == null) ? "APIRequestException" : "APIRequestException: $message";
 }
-
+@deprecated
 class DetailedApiRequestError extends Error {
   final int statusCode;
   final String body;
@@ -521,6 +505,7 @@ import 'client_base.dart';
 /**
  * Base class for all Browser API clients, offering generic methods for HTTP Requests to the API
  */
+@deprecated
 abstract class BrowserClient implements ClientBase {
 
   static const _corsCallback = 'handleCLientLoad';
@@ -696,6 +681,7 @@ import 'client_base.dart';
 /**
  * Base class for all Console API clients, offering generic methods for HTTP Requests to the API
  */
+@deprecated
 abstract class ConsoleClient implements ClientBase {
 
   oauth2.OAuth2Console get auth;
